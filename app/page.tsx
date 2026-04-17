@@ -78,18 +78,18 @@ export default function HormuzGetRichQuickDashboard() {
     if (percentNormal < 25) {
       newSignal = 'STRONG ESCALATION – BLOCKADE TIGHT';
       newAction = '🚀 BUY LEVERAGED ENERGY NOW';
-      newContext = 'Ship traffic critically low (~20% of normal). US blockade on Iranian ports active. Ceasefire fragile (expires ~Apr 22). Strong bullish bias for energy leverage.';
+      newContext = 'Ship traffic critically low (~20% of normal). US naval blockade on Iranian ports remains active. Ceasefire is fragile and expires ~Apr 22. Any negative news can spike oil quickly. Strong bullish bias for energy leverage.';
       newTicker = 'ERX';
       playAlert();
     } else if (percentNormal > 35) {
       newSignal = 'DE-ESCALATION – TRAFFIC REBOUND';
-      newAction = '🔄 TAKE PROFIT or SHORT ENERGY';
-      newContext = 'Ship traffic recovering. Positive talks or ceasefire extension likely. Good time to lock gains.';
+      newAction = '🔄 TAKE PROFIT or SHORT ENERGY (ERY)';
+      newContext = 'Ship traffic showing recovery. Positive developments in talks or ceasefire extension likely. Good window to lock in gains or rotate.';
       newTicker = 'ERY';
     } else {
       newSignal = 'NEUTRAL – MONITOR TALKS';
       newAction = 'HOLD CASH';
-      newContext = 'Traffic still suppressed. Volatility expected around talks and deadline. Stay flat until clear move.';
+      newContext = 'Traffic still suppressed with no major breakout. Volatility expected around talks and ceasefire deadline. Stay flat until a clear directional move.';
       newTicker = 'ERX';
     }
 
@@ -114,7 +114,7 @@ export default function HormuzGetRichQuickDashboard() {
   }, []);
 
   const robinhoodLink = `https://robinhood.com/us/en/stocks/${primaryTicker}/`;
-  const optionsLink = primaryTicker === 'ERX' ? 'https://robinhood.com/us/en/stocks/XOM/' : 'https://robinhood.com/us/en/stocks/XOM/';
+  const optionsLink = 'https://robinhood.com/us/en/stocks/XOM/';
 
   const logTrade = async () => {
     const { error } = await supabase.from('trades').insert([{
@@ -162,4 +162,191 @@ export default function HormuzGetRichQuickDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <header className="flex flex-col md:flex-row justify-between mb-10 border-b border-zinc-800 pb-6">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold flex items-center gap-3">
+              <Zap className="text-yellow-400" /> HORMUZ SCALP DASHBOARD
+            </h1>
+            <p className="text-emerald-400">Get-Rich-Quick Mode • Real Oil Data via Finnhub</p>
+          </div>
+          <div className="text-right text-sm mt-4 md:mt-0">
+            Last updated: {lastUpdated.toLocaleTimeString()}<br />
+            <span className="text-amber-400">Ceasefire fragile • Expires ~Apr 22 • Talks ongoing</span>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Oil Card */}
+          <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <DollarSign className="w-8 h-8 text-yellow-400" />
+              <h2 className="text-xl">WTI Crude (Real)</h2>
+            </div>
+            <div className="text-5xl md:text-6xl font-mono font-bold mb-2">${oilPrice}</div>
+            <div className={`text-2xl md:text-3xl flex items-center gap-2 ${oilChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {oilChange >= 0 ? <TrendingUp /> : <TrendingDown />} {oilChange}%
+            </div>
+            <div className="mt-6 h-12 md:h-14 flex items-end gap-1">
+              {oilHistory.map((p, i) => (
+                <div key={i} className="bg-yellow-400 w-3 md:w-4 rounded-t" style={{ height: `${(p - 90) * 8}px` }} />
+              ))}
+            </div>
+          </div>
+
+          {/* Ships Card */}
+          <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 md:p-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Ship className="w-8 h-8 text-blue-400" />
+                <h2 className="text-xl">Ships Last 24h</h2>
+              </div>
+              <button
+                onClick={refreshShipData}
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl text-sm"
+              >
+                <RefreshCw className="w-4 h-4" /> Refresh
+              </button>
+            </div>
+            <div className="text-5xl md:text-6xl font-mono font-bold mb-2">{ships24h}</div>
+            <div className="text-xl md:text-2xl text-zinc-400">
+              {(ships24h / 60 * 100).toFixed(1)}% of normal (~60/day)
+            </div>
+            <p className="text-red-400 text-sm mt-6">Traffic near standstill • US blockade active on Iranian ports</p>
+          </div>
+
+          {/* Trade Signal Card */}
+          <div className={`rounded-3xl p-6 md:p-8 border-4 ${signal.includes('ESCALATION') ? 'border-red-600 bg-red-950/50' : 'border-emerald-600 bg-emerald-950/50'}`}>
+            <div className="flex items-center gap-3 mb-6">
+              <AlertTriangle className={`w-8 h-8 ${signal.includes('ESCALATION') ? 'text-red-400' : 'text-emerald-400'}`} />
+              <h2 className="text-xl font-semibold">TRADE SIGNAL</h2>
+            </div>
+            
+            <div className={`text-3xl md:text-4xl font-bold mb-6 ${signal.includes('ESCALATION') ? 'text-red-400' : 'text-emerald-400'}`}>
+              {signal}
+            </div>
+            
+            <div className="bg-black/70 p-6 rounded-2xl whitespace-pre-line text-base border border-zinc-700 mb-6">
+              {action}
+            </div>
+
+            <div className="bg-zinc-900/80 border border-zinc-700 rounded-2xl p-6 mb-8">
+              <div className="flex items-center gap-2 mb-3 text-sm text-zinc-400">
+                <Info className="w-4 h-4" /> CONTEXT & RATIONALE
+              </div>
+              <p className="text-sm leading-relaxed text-zinc-300">
+                {context}
+              </p>
+            </div>
+
+            {/* Smart Robinhood Button */}
+            <a
+              href={robinhoodLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 text-lg transition mb-3"
+            >
+              <ExternalLink className="w-6 h-6" />
+              BUY {primaryTicker} ON ROBINHOOD
+            </a>
+
+            {signal.includes('ESCALATION') && (
+              <a
+                href={optionsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-medium py-3 rounded-2xl flex items-center justify-center gap-2 text-sm mb-4"
+              >
+                View XOM/CVX Options Chain
+              </a>
+            )}
+
+            <button
+              onClick={() => setShowLogger(!showLogger)}
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition"
+            >
+              <Plus className="w-5 h-5" /> LOG THIS TRADE
+            </button>
+          </div>
+        </div>
+
+        {/* Trade Logger */}
+        {showLogger && (
+          <div className="mt-8 bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
+            <h3 className="text-xl mb-6">Log New Trade</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="text" placeholder="Ticker (e.g. ERX)" value={newTrade.ticker} onChange={(e) => setNewTrade({ ...newTrade, ticker: e.target.value })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+              <input type="number" step="0.01" placeholder="Entry Price" onChange={(e) => setNewTrade({ ...newTrade, entry_price: parseFloat(e.target.value) || 0 })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+              <input type="number" placeholder="Position Size ($)" onChange={(e) => setNewTrade({ ...newTrade, position_size: parseFloat(e.target.value) || 0 })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+              <input type="text" placeholder="Notes (optional)" onChange={(e) => setNewTrade({ ...newTrade, notes: e.target.value })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+            </div>
+            <button onClick={logTrade} className="mt-6 w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-2xl font-bold">Save to Supabase</button>
+          </div>
+        )}
+
+        {/* P/L Tracker */}
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl">Recent Trades & P/L</h2>
+            <button onClick={withdrawProfits} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl">
+              <Download className="w-5 h-5" /> Withdraw 30% to Family Fund
+            </button>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-3xl overflow-hidden">
+            {trades.length === 0 ? (
+              <p className="p-12 text-center text-zinc-500">No trades yet. Log your first leveraged move!</p>
+            ) : (
+              <div className="divide-y divide-zinc-800">
+                {trades.map((trade) => (
+                  <div key={trade.id} className="p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                      <span className="font-mono text-lg">{trade.ticker}</span> @ ${trade.entry_price}
+                      <span className="text-xs text-zinc-500 ml-4">{new Date(trade.created_at).toLocaleDateString()}</span>
+                    </div>
+
+                    {editingTradeId === trade.id ? (
+                      <div className="flex gap-3 items-center">
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Exit Price" 
+                          value={exitPriceInput} 
+                          onChange={(e) => setExitPriceInput(parseFloat(e.target.value) || 0)}
+                          className="bg-zinc-800 p-3 rounded-xl w-32"
+                        />
+                        <button onClick={() => saveExitPrice(trade.id)} className="bg-emerald-500 px-4 py-2 rounded-xl">Save</button>
+                        <button onClick={() => setEditingTradeId(null)} className="bg-zinc-700 px-4 py-2 rounded-xl">Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div>
+                          Size: ${trade.position_size} | 
+                          P/L: <span className={(trade.pnl && trade.pnl > 0) ? 'text-emerald-400' : 'text-red-400'}>
+                            {trade.pnl ? `$${trade.pnl.toFixed(2)}` : 'Open'}
+                          </span>
+                        </div>
+                        {!trade.exit_price && (
+                          <button 
+                            onClick={() => { setEditingTradeId(trade.id); setExitPriceInput(trade.entry_price * 1.1); }}
+                            className="text-sm bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl"
+                          >
+                            Set Exit Price
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center text-zinc-500 text-sm">
+          Real oil via Finnhub • Click Refresh Ship Data for latest simulation • Click "Set Exit Price" to close trades
+        </div>
+      </div>
+    </div>
+  );
+}
