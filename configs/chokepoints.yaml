@@ -1,0 +1,30 @@
+# Geographic / industrial chokepoints watched by ripple.
+# Instruments use vendor-style tickers; no live quotes are fetched in the scaffold.
+
+chokepoints:
+  - id: taiwan_tsmc
+    name: Taiwan / TSMC semiconductor corridor
+    region: TW
+    description: >
+      Leading foundry capacity concentrated in Hsinchu, Tainan, and Taichung.
+      Physical shocks (quake, typhoon, power, water) and policy shocks
+      (export controls) can reprice TSMC and the broader semis complex.
+    leading_instrument: "2330.TW"
+    lagging_instruments:
+      - TSM
+      - SOXX
+    event_types:
+      - earthquake
+      - typhoon
+      - geopolitical
+      - fab_disruption
+      - export_control
+      - power_outage
+      - water_shortage
+      - disclosure
+      - halt
+      - market_notice
+    notes: >
+      2330.TW (TWSE cash) typically leads the ADR (TSM) and the SOXX basket
+      around local-hours events. Outcomes are recorded on signal_outcomes,
+      not by mutating the signals ledger.

@@ -1,0 +1,180 @@
+# Taiwan-semiconductor source registry.
+# Precedence is strict: OFFICIAL > WIRE > outlet > aggregator > social.
+# This file is configuration only — connectors do not fetch live data in the scaffold.
+
+tier_precedence:
+  - OFFICIAL
+  - WIRE
+  - outlet
+  - aggregator
+  - social
+
+sources:
+  - id: twse_mops_material
+    name: TWSE Market Observation Post System — material information
+    tier: OFFICIAL
+    region: TW
+    event_types: [disclosure, halt, fab_disruption, export_control]
+    url: https://mops.twse.com.tw/mops/web/t05sr01_1
+    homepage: https://mops.twse.com.tw/mops/web/index
+    handles: []
+    notes: Official TWSE/TPEx issuer disclosures (重大訊息).
+
+  - id: twse_announcements
+    name: Taiwan Stock Exchange announcements
+    tier: OFFICIAL
+    region: TW
+    event_types: [disclosure, halt, market_notice]
+    url: https://www.twse.com.tw/en/announcement/notice
+    homepage: https://www.twse.com.tw/en/
+    handles: []
+    notes: Exchange-level notices and trading announcements.
+
+  - id: cwa_earthquake
+    name: Central Weather Administration — recent earthquake report
+    tier: OFFICIAL
+    region: TW
+    event_types: [earthquake]
+    url: https://www.cwa.gov.tw/V8/E/E/index.html
+    homepage: https://www.cwa.gov.tw/V8/E/index.html
+    open_data: https://opendata.cwa.gov.tw/
+    handles: []
+    notes: Official CWA felt/significant earthquake reports.
+
+  - id: cwa_typhoon
+    name: Central Weather Administration — typhoon warnings
+    tier: OFFICIAL
+    region: TW
+    event_types: [typhoon]
+    url: https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html
+    homepage: https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_NEWS.html
+    open_data: https://opendata.cwa.gov.tw/
+    handles: []
+    notes: Official CWA typhoon sea/land warnings and track products.
+
+  - id: cna
+    name: Central News Agency (CNA)
+    tier: WIRE
+    region: TW
+    event_types: [geopolitical, earthquake, typhoon, fab_disruption, export_control]
+    url: https://www.cna.com.tw/
+    homepage: https://www.cna.com.tw/
+    handles: []
+    notes: Taiwan's official national wire service.
+
+  - id: cna_focus_taiwan
+    name: Focus Taiwan (CNA English)
+    tier: WIRE
+    region: TW
+    event_types: [geopolitical, earthquake, typhoon, fab_disruption, export_control]
+    url: https://focustaiwan.tw/
+    homepage: https://focustaiwan.tw/
+    handles:
+      - https://x.com/Focus_Taiwan
+    notes: CNA's English-language wire.
+
+  - id: reuters_asia
+    name: Reuters Asia-Pacific
+    tier: WIRE
+    region: APAC
+    event_types: [geopolitical, export_control, fab_disruption]
+    url: https://www.reuters.com/world/asia-pacific/
+    homepage: https://www.reuters.com/
+    handles:
+      - https://x.com/Reuters
+    notes: International wire for geopolitics and supply-chain shocks.
+
+  - id: reuters_technology
+    name: Reuters Technology
+    tier: WIRE
+    region: GLOBAL
+    event_types: [fab_disruption, export_control]
+    url: https://www.reuters.com/technology/
+    homepage: https://www.reuters.com/technology/
+    handles:
+      - https://x.com/Reuters
+    notes: Semiconductor and technology desk.
+
+  - id: digitimes
+    name: DigiTimes
+    tier: outlet
+    region: TW
+    event_types: [fab_disruption, export_control, power_outage, water_shortage]
+    url: https://www.digitimes.com/
+    homepage: https://www.digitimes.com/
+    handles: []
+    notes: Taiwan semiconductor trade press.
+
+  - id: taipei_times
+    name: Taipei Times
+    tier: outlet
+    region: TW
+    event_types: [geopolitical, earthquake, typhoon]
+    url: https://www.taipeitimes.com/
+    homepage: https://www.taipeitimes.com/
+    handles: []
+    notes: English-language Taiwan daily.
+
+  - id: nikkei_asia
+    name: Nikkei Asia
+    tier: outlet
+    region: APAC
+    event_types: [geopolitical, export_control, fab_disruption]
+    url: https://asia.nikkei.com/
+    homepage: https://asia.nikkei.com/
+    handles: []
+    notes: Regional industrial and geopolitics coverage.
+
+  - id: google_news_tsmc
+    name: Google News — TSMC / Taiwan semis
+    tier: aggregator
+    region: TW
+    event_types: [earthquake, typhoon, geopolitical, fab_disruption, export_control]
+    url: https://news.google.com/search?q=TSMC%20OR%20Taiwan%20semiconductor
+    homepage: https://news.google.com/
+    handles: []
+    notes: Aggregated headlines; never a primary verification source.
+
+  - id: yahoo_news_taiwan
+    name: Yahoo News Taiwan
+    tier: aggregator
+    region: TW
+    event_types: [earthquake, typhoon, geopolitical]
+    url: https://tw.news.yahoo.com/
+    homepage: https://tw.news.yahoo.com/
+    handles: []
+    notes: Aggregated local and wire copy.
+
+  - id: cwa_social
+    name: CWA official social (報天氣 / 報地震)
+    tier: social
+    region: TW
+    event_types: [earthquake, typhoon]
+    url: https://www.cwa.gov.tw/V8/C/S/eservice/facebook.html
+    homepage: https://www.cwa.gov.tw/V8/C/S/eservice/facebook.html
+    handles:
+      - https://www.instagram.com/cwa_weather/
+      - https://www.facebook.com/CWB.WEATHER
+    notes: Official CWA social relays of warnings; corroborate against CWA pages.
+
+  - id: focus_taiwan_social
+    name: Focus Taiwan (CNA) on X
+    tier: social
+    region: TW
+    event_types: [geopolitical, earthquake, typhoon, fab_disruption]
+    url: https://x.com/Focus_Taiwan
+    homepage: https://focustaiwan.tw/
+    handles:
+      - https://x.com/Focus_Taiwan
+    notes: Social distribution of the CNA English wire.
+
+  - id: reuters_social
+    name: Reuters on X
+    tier: social
+    region: GLOBAL
+    event_types: [geopolitical, export_control, fab_disruption]
+    url: https://x.com/Reuters
+    homepage: https://www.reuters.com/
+    handles:
+      - https://x.com/Reuters
+    notes: Social distribution of Reuters copy; prefer the wire URL.

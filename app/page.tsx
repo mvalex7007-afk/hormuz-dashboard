@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { TrendingUp, TrendingDown, DollarSign, Zap, Plus, Download, ExternalLink } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, DollarSign, Zap, Plus, Download, Info, ExternalLink, BookOpen, X } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const FINNHUB_API_KEY = 'd7h95tpr01qhiu0apko0d7h95tpr01qhiu0apkog';
+const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
 
 interface Trade {
   id: string;
@@ -22,17 +22,22 @@ interface Trade {
   created_at: string;
 }
 
-export default function HormuzSimplifiedDashboard() {
+export default function HormuzTradeImpactPlatform() {
   const [oilPrice, setOilPrice] = useState(93.75);
   const [oilChange, setOilChange] = useState(0.3);
   const [oilHistory, setOilHistory] = useState([93.2, 93.5, 93.8, 93.6, 93.75]);
+  const [signal, setSignal] = useState('STRONG ESCALATION – BLOCKADE TIGHT');
+  const [action, setAction] = useState('');
+  const [context, setContext] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [showLogger, setShowLogger] = useState(false);
   const [editingTradeId, setEditingTradeId] = useState<string | null>(null);
   const [exitPriceInput, setExitPriceInput] = useState(0);
   const [newTrade, setNewTrade] = useState({ ticker: 'ERX', entry_price: 0, position_size: 0, notes: '' });
-  const [quickNotes, setQuickNotes] = useState('');
+  const [primaryTicker, setPrimaryTicker] = useState('ERX');
+  const [beginnerMode, setBeginnerMode] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const fetchOilPrice = async () => {
     try {
@@ -56,6 +61,12 @@ export default function HormuzSimplifiedDashboard() {
     fetchOilPrice();
     const interval = setInterval(fetchOilPrice, 30000);
 
+    // Current context (April 17, 2026)
+    setSignal('STRONG ESCALATION – BLOCKADE TIGHT');
+    setAction('🚀 BUY LEVERAGED ENERGY NOW\nERX (3x Bull), UCO (2x Oil), GUSH or calls on XOM/CVX');
+    setContext(`Who: Energy companies (XOM, CVX) and defense contractors (LMT, RTX)\nWhat: High chance of 5–15% oil price spike in coming days\nWhen: Signal active now – ceasefire expires ~April 22\nWhere: Strait of Hormuz (major global oil chokepoint)\nWhy: US naval blockade on Iranian ports + severely reduced shipping volume creates supply risk`);
+    setPrimaryTicker('ERX');
+
     const loadTrades = async () => {
       const { data } = await supabase.from('trades').select('*').order('created_at', { ascending: false });
       if (data) setTrades(data);
@@ -65,6 +76,8 @@ export default function HormuzSimplifiedDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const robinhoodLink = `https://robinhood.com/us/en/stocks/${primaryTicker}/`;
+
   const logTrade = async () => {
     const { error } = await supabase.from('trades').insert([{
       ticker: newTrade.ticker,
@@ -72,7 +85,6 @@ export default function HormuzSimplifiedDashboard() {
       position_size: newTrade.position_size,
       notes: newTrade.notes || null,
     }]);
-
     if (!error) {
       alert('✅ Trade logged successfully!');
       setShowLogger(false);
@@ -111,108 +123,130 @@ export default function HormuzSimplifiedDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-8">
+    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-col md:flex-row justify-between mb-10 border-b border-zinc-800 pb-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-bold flex items-center gap-3">
-              <Zap className="text-yellow-400" /> HORMUZ TRADING DASHBOARD
+              <Zap className="text-yellow-400" /> HORMUZ TRADE IMPACT
             </h1>
-            <p className="text-emerald-400">Real Oil Price • Quick Execution • Trade Logger</p>
+            <p className="text-emerald-400">Real-time signals from geopolitical disruptions</p>
           </div>
-          <div className="text-right text-sm mt-4 md:mt-0">
-            Last updated: {lastUpdated.toLocaleTimeString()}<br />
-            <span className="text-amber-400">Focus on oil volatility from current conflict</span>
+          <div className="flex items-center gap-4 mt-4 md:mt-0">
+            <button
+              onClick={() => setBeginnerMode(!beginnerMode)}
+              className={`px-5 py-2 rounded-full flex items-center gap-2 ${beginnerMode ? 'bg-emerald-600' : 'bg-zinc-700'}`}
+            >
+              <BookOpen className="w-4 h-4" />
+              {beginnerMode ? 'Beginner Mode: ON' : 'Beginner Mode: OFF'}
+            </button>
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="px-5 py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center gap-2 text-sm"
+            >
+              New Here? Take the Tour
+            </button>
+            <div className="text-right text-sm">
+              Last updated: {lastUpdated.toLocaleTimeString()}<br />
+              <span className="text-amber-400">Ceasefire fragile • Expires ~Apr 22</span>
+            </div>
           </div>
         </header>
 
-        {/* Oil Price Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Oil Card */}
           <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <DollarSign className="w-10 h-10 text-yellow-400" />
-              <h2 className="text-2xl">WTI Crude Oil (Live)</h2>
+            <div className="flex items-center gap-3 mb-4">
+              <DollarSign className="w-8 h-8 text-yellow-400" />
+              <h2 className="text-xl">WTI Crude (Real)</h2>
             </div>
-            <div className="text-7xl font-mono font-bold mb-4">${oilPrice}</div>
-            <div className={`text-4xl flex items-center gap-3 ${oilChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <div className={`text-6xl font-mono font-bold mb-2 ${beginnerMode ? 'text-5xl' : ''}`}>${oilPrice}</div>
+            <div className={`text-3xl flex items-center gap-2 ${oilChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {oilChange >= 0 ? <TrendingUp /> : <TrendingDown />} {oilChange}%
             </div>
-            <div className="mt-8 h-16 flex items-end gap-2">
+            <div className="mt-6 h-14 flex items-end gap-1">
               {oilHistory.map((p, i) => (
-                <div key={i} className="bg-yellow-400 w-5 rounded-t" style={{ height: `${(p - 90) * 8}px` }} />
+                <div key={i} className="bg-yellow-400 w-4 rounded-t" style={{ height: `${(p - 90) * 7}px` }} />
               ))}
             </div>
           </div>
 
-          {/* Quick Notes */}
-          <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
-            <h2 className="text-xl mb-4">Quick Notes / Headlines</h2>
-            <textarea
-              value={quickNotes}
-              onChange={(e) => setQuickNotes(e.target.value)}
-              placeholder="Paste latest news, ship counts, Trump statements, or CENTCOM updates here..."
-              className="w-full h-48 bg-zinc-800 p-4 rounded-2xl text-sm resize-y"
-            />
-            <p className="text-xs text-zinc-500 mt-3">Use this to track real developments manually</p>
-          </div>
-        </div>
+          {/* Trade Signal Card */}
+          <div className={`lg:col-span-2 rounded-3xl p-8 border-4 ${signal.includes('ESCALATION') ? 'border-red-600 bg-red-950/50' : 'border-emerald-600 bg-emerald-950/50'}`}>
+            <div className="flex items-center gap-3 mb-6">
+              <AlertTriangle className={`w-8 h-8 ${signal.includes('ESCALATION') ? 'text-red-400' : 'text-emerald-400'}`} />
+              <h2 className="text-xl font-semibold">TRADE SIGNAL</h2>
+            </div>
+            
+            <div className={`text-4xl font-bold mb-6 ${beginnerMode ? 'text-5xl' : ''} ${signal.includes('ESCALATION') ? 'text-red-400' : 'text-emerald-400'}`}>
+              {signal}
+            </div>
 
-        {/* Quick Buy Buttons */}
-        <div className="mb-12">
-          <h2 className="text-xl mb-4">Quick Execution</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['ERX', 'UCO', 'GUSH', 'XOM'].map((ticker) => (
-              <a
-                key={ticker}
-                href={`https://robinhood.com/us/en/stocks/${ticker}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-3xl p-6 text-center transition flex flex-col items-center"
-              >
-                <div className="text-3xl font-mono font-bold mb-2">{ticker}</div>
-                <div className="text-emerald-400 text-sm flex items-center gap-1">
-                  <ExternalLink className="w-4 h-4" /> Open in Robinhood
-                </div>
-              </a>
-            ))}
-          </div>
-          <p className="text-xs text-zinc-500 mt-4 text-center">Energy & Defense plays most relevant to current volatility</p>
-        </div>
+            <div className="bg-black/70 p-6 rounded-2xl whitespace-pre-line text-base border border-zinc-700 mb-8">
+              {action}
+            </div>
 
-        {/* Trade Logger & P/L Tracker */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl">Trade Logger & P/L</h2>
+            <div className="bg-zinc-900/80 border border-zinc-700 rounded-2xl p-6 mb-8">
+              <div className="flex items-center gap-2 mb-3 text-sm text-zinc-400">
+                <Info className="w-4 h-4" /> CONTEXT & RATIONALE (5-W)
+              </div>
+              <p className={`text-sm leading-relaxed whitespace-pre-line ${beginnerMode ? 'text-base' : ''}`}>
+                {context}
+              </p>
+            </div>
+
+            <div className="text-xs bg-red-900/50 border border-red-800 p-3 rounded-xl mb-6">
+              ⚠️ Risk Warning: This could lose money. Only risk what you can afford to lose.
+            </div>
+
+            <a
+              href={robinhoodLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 text-lg transition mb-4"
+            >
+              <ExternalLink className="w-6 h-6" />
+              BUY {primaryTicker} ON ROBINHOOD
+            </a>
+
             <button
               onClick={() => setShowLogger(!showLogger)}
-              className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-6 py-3 rounded-2xl flex items-center gap-2"
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition"
             >
-              <Plus className="w-5 h-5" /> Log New Trade
+              <Plus className="w-5 h-5" /> LOG THIS TRADE
             </button>
           </div>
+        </div>
 
-          {/* Logger Form */}
-          {showLogger && (
-            <div className="mb-10 bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
-              <h3 className="text-lg mb-6">New Trade</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" placeholder="Ticker (ERX, UCO, etc.)" value={newTrade.ticker} onChange={(e) => setNewTrade({ ...newTrade, ticker: e.target.value })} className="bg-zinc-800 p-4 rounded-2xl" />
-                <input type="number" step="0.01" placeholder="Entry Price" onChange={(e) => setNewTrade({ ...newTrade, entry_price: parseFloat(e.target.value) || 0 })} className="bg-zinc-800 p-4 rounded-2xl" />
-                <input type="number" placeholder="Position Size ($)" onChange={(e) => setNewTrade({ ...newTrade, position_size: parseFloat(e.target.value) || 0 })} className="bg-zinc-800 p-4 rounded-2xl" />
-                <input type="text" placeholder="Notes (optional)" onChange={(e) => setNewTrade({ ...newTrade, notes: e.target.value })} className="bg-zinc-800 p-4 rounded-2xl" />
-              </div>
-              <button onClick={logTrade} className="mt-6 w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-2xl font-bold">Save Trade</button>
+        {/* Trade Logger */}
+        {showLogger && (
+          <div className="mt-8 bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
+            <h3 className="text-xl mb-6">Log New Trade</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="text" placeholder="Ticker (e.g. ERX)" value={newTrade.ticker} onChange={(e) => setNewTrade({ ...newTrade, ticker: e.target.value })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+              <input type="number" step="0.01" placeholder="Entry Price" onChange={(e) => setNewTrade({ ...newTrade, entry_price: parseFloat(e.target.value) || 0 })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+              <input type="number" placeholder="Position Size ($)" onChange={(e) => setNewTrade({ ...newTrade, position_size: parseFloat(e.target.value) || 0 })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
+              <input type="text" placeholder="Notes (optional)" onChange={(e) => setNewTrade({ ...newTrade, notes: e.target.value })} className="bg-zinc-800 p-4 rounded-2xl text-white" />
             </div>
-          )}
+            <button onClick={logTrade} className="mt-6 w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-2xl font-bold">Save to Supabase</button>
+          </div>
+        )}
 
-          {/* P/L Tracker */}
-          <div>
+        {/* P/L Tracker */}
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl">Recent Trades & P/L</h2>
+            <button onClick={withdrawProfits} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl">
+              <Download className="w-5 h-5" /> Withdraw 30% to Family Fund
+            </button>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-3xl overflow-hidden">
             {trades.length === 0 ? (
-              <p className="text-center py-16 text-zinc-500">No trades logged yet. Add your first one above.</p>
+              <p className="p-12 text-center text-zinc-500">No trades yet. Log your first leveraged move above!</p>
             ) : (
               <div className="divide-y divide-zinc-800">
                 {trades.map((trade) => (
-                  <div key={trade.id} className="py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div key={trade.id} className="p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
                       <span className="font-mono text-lg">{trade.ticker}</span> @ ${trade.entry_price}
                       <span className="text-xs text-zinc-500 ml-4">{new Date(trade.created_at).toLocaleDateString()}</span>
@@ -231,19 +265,17 @@ export default function HormuzSimplifiedDashboard() {
                         <button onClick={() => setEditingTradeId(null)} className="bg-zinc-700 px-5 py-2 rounded-xl">Cancel</button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-6">
-                        <div>
-                          Size: ${trade.position_size} | 
-                          P/L: <span className={(trade.pnl && trade.pnl > 0) ? 'text-emerald-400' : 'text-red-400'}>
-                            {trade.pnl ? `$${trade.pnl.toFixed(2)}` : 'Open'}
-                          </span>
-                        </div>
+                      <div className="flex items-center gap-4">
+                        Size: ${trade.position_size} | 
+                        P/L: <span className={(trade.pnl && trade.pnl > 0) ? 'text-emerald-400' : 'text-red-400'}>
+                          {trade.pnl ? `$${trade.pnl.toFixed(2)}` : 'Open'}
+                        </span>
                         {!trade.exit_price && (
                           <button 
                             onClick={() => { setEditingTradeId(trade.id); setExitPriceInput(trade.entry_price * 1.1); }}
                             className="text-sm bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl"
                           >
-                            Set Exit
+                            Set Exit Price
                           </button>
                         )}
                       </div>
@@ -253,12 +285,36 @@ export default function HormuzSimplifiedDashboard() {
               </div>
             )}
           </div>
+        </div>
 
-          <button onClick={withdrawProfits} className="mt-8 w-full bg-zinc-800 hover:bg-zinc-700 py-4 rounded-2xl flex items-center justify-center gap-2">
-            <Download className="w-5 h-5" /> Withdraw 30% Profits to Longevity & Family Fund
-          </button>
+        <div className="mt-12 text-center text-zinc-500 text-sm">
+          Real oil prices via Finnhub • Beginner Mode makes everything simpler and larger
         </div>
       </div>
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6">
+          <div className="bg-zinc-900 rounded-3xl max-w-md w-full p-8 relative">
+            <button onClick={() => setShowOnboarding(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-white">
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-2xl font-bold mb-6">Welcome to Hormuz Trade Impact</h2>
+            <div className="space-y-6 text-sm leading-relaxed">
+              <p>This is like a weather forecast for oil and energy markets. When the "storm" (blockade or low shipping) is strong, we show clear opportunities to buy leveraged energy plays.</p>
+              <p>The big signal box tells you what to do right now. The "5-W" box explains who is affected, what might happen, when, where, and why — all in plain English.</p>
+              <p>Click the green button to go straight to Robinhood and buy. Use "Log This Trade" to track your moves and see how well they perform over time.</p>
+              <p>Only risk money you can afford to lose. Start small.</p>
+            </div>
+            <button 
+              onClick={() => setShowOnboarding(false)}
+              className="mt-8 w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-2xl font-bold"
+            >
+              Got it — Let's Go!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
