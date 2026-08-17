@@ -1,7 +1,6 @@
 """SQLAlchemy 2.0 models for the ripple ledger."""
 
-# Register append-only listeners after Signal is importable.
-from ripple.db import events as _events  # noqa: F401, E402
+from ripple.db import events as _events  # noqa: F401
 from ripple.db.base import Base
 from ripple.models.enums import (
     Horizon,

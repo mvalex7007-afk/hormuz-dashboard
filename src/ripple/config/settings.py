@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from functools import lru_cache
 from typing import ClassVar
 
 from pydantic import Field, field_validator
@@ -115,17 +114,22 @@ def configure_logging(level: str) -> None:
     )
 
 
-@lru_cache(maxsize=1)
+_SETTINGS: Settings | None = None
+
+
 def get_settings() -> Settings:
     """Return the process-wide :class:`Settings` singleton.
 
     Missing optional keys produce warnings; they do not prevent startup.
     """
-    settings = Settings()
-    _warn_missing_optional(settings)
-    return settings
+    global _SETTINGS
+    if _SETTINGS is None:
+        _SETTINGS = Settings()
+        _warn_missing_optional(_SETTINGS)
+    return _SETTINGS
 
 
 def reset_settings() -> None:
     """Clear the settings cache (used by tests)."""
-    get_settings.cache_clear()
+    global _SETTINGS
+    _SETTINGS = None

@@ -11,7 +11,7 @@ from ripple.detect import run_backtest, run_detect, run_mature
 
 app = typer.Typer(
     name="ripple",
-    help="Hormuz-Dashboard / ripple — early-warning market-signal service.",
+    help="Hormuz-Dashboard / ripple - early-warning market-signal service.",
     no_args_is_help=True,
 )
 

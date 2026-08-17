@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from pathlib import Path
 
 import pytest
 from sqlalchemy import Engine, create_engine
@@ -12,8 +11,6 @@ from sqlalchemy.pool import StaticPool
 
 from ripple.config import reset_settings
 from ripple.models import Base
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(autouse=True)
